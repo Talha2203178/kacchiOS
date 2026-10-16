@@ -2,12 +2,38 @@
 #include "types.h"
 #include "serial.h"
 #include "string.h"
+#include "memory.h"
 
 #define MAX_INPUT 128
+//extern struct blockstr freemem; 
+//extern void *memsec;
 
 void kmain(void) {
     char input[MAX_INPUT];
     int pos = 0;
+    struct blockstr *pmblock;  
+    void *testblock;
+    char *input2;
+
+    /* Initialize free memory list */
+    memsec = highbyte(memsec);
+    freemem.next = pmblock = (struct blockstr *)memsec;
+    freemem.size = (uint32_t)(4026);
+    pmblock->size = (uint32_t)(4026);
+    pmblock->next = NULL;
+    input2 = (char *)freemem.size;
+    serial_puts("\nHere\n");
+    serial_puts(input2);
+    serial_puts("\n");
+    heapcrt(22);
+    testblock = heapcrt(22);
+    input2 = (char *)heapkill((void *)testblock, 22);
+    serial_puts(input2);
+    serial_puts("\n");
+    stkcrt(22);
+    testblock = stkcrt(22);
+    input2 = (char *)stkkill((void *)testblock, 22);
+    serial_puts(input2);
     
     /* Initialize hardware */
     serial_init();
@@ -49,6 +75,7 @@ void kmain(void) {
         
         /* Echo back the input */
         if (pos > 0) {
+            //if(strcmp(input, "exit") == 0) 
             serial_puts("You typed: ");
             serial_puts(input);
             serial_puts("\n");

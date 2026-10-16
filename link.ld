@@ -23,6 +23,7 @@ SECTIONS {
     }
     
     /* Future: Students will use memory beyond this point */
+    memsec = .;
     . = ALIGN(4096);
     __kernel_end = .;
 }
