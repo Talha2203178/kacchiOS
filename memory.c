@@ -125,7 +125,7 @@ void *stkcrt(uint32_t nbytes)
     if (0 == nbytes)
     {
         serial_puts("Can not assign 0 bytes in stack\n");
-        return (void *)"er1\n";
+        return NULL;
     }
 
     /* round to multiple of 8   */
@@ -150,7 +150,7 @@ void *stkcrt(uint32_t nbytes)
 
     if (NULL == fits)
     {
-        return (void *)"er2\n";
+        return NULL;
     }
 
     if (nbytes == fits->size)

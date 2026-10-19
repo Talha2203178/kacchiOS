@@ -18,7 +18,7 @@ struct blockstr
 extern struct blockstr freemem;     /**< head of free memory list           */
 
 
-extern void *memsec;          //heap and stack section
+extern char memsec[];          //heap and stack section
 
 /* Memory functions */
 void *heapcrt(uint32_t);
