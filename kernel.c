@@ -3,40 +3,93 @@
 #include "serial.h"
 #include "string.h"
 #include "memory.h"
+#include "process.h"
 
 #define MAX_INPUT 128
-//extern struct blockstr freemem; 
+// extern struct blockstr freemem; 
 //extern void *memsec;
 
+
+static void test_process(void)
+{
+    int32_t i;
+
+    for (i = 0; i < 5; i++) {
+        serial_puts("process 1 is running\n");
+    }
+
+    serial_puts("process 1 is returning\n");
+}
+
 void kmain(void) {
+    serial_init();
+    
     char input[MAX_INPUT];
     int pos = 0;
     struct blockstr *pmblock;  
-    void *testblock;
-    char *input2;
+    // void *testblock;
+    // char *input2;
 
     /* Initialize free memory list */
-    memsec = highbyte(memsec);
-    freemem.next = pmblock = (struct blockstr *)memsec;
-    freemem.size = (uint32_t)(4026);
-    pmblock->size = (uint32_t)(4026);
+
+    char *memory_start;
+    memory_start = (char *)highbyte((uint32_t)memsec);
+
+    freemem.next = (struct blockstr *)memory_start;
+    freemem.size = 4096;
+
+    pmblock = freemem.next;
+    pmblock->size = 4096;
     pmblock->next = NULL;
-    input2 = (char *)freemem.size;
-    serial_puts("\nHere\n");
-    serial_puts(input2);
-    serial_puts("\n");
-    heapcrt(22);
-    testblock = heapcrt(22);
-    input2 = (char *)heapkill((void *)testblock, 22);
-    serial_puts(input2);
-    serial_puts("\n");
-    stkcrt(22);
-    testblock = stkcrt(22);
-    input2 = (char *)stkkill((void *)testblock, 22);
-    serial_puts(input2);
+    // memsec = highbyte(memsec);
+    // freemem.next = pmblock = (struct blockstr *)memsec;
+    // freemem.size = (uint32_t)(4026);
+    // pmblock->size = (uint32_t)(4026);
+    // pmblock->next = NULL;
+    // input2 = (char *)freemem.size;
+    // serial_puts("\nHere\n");
+    // serial_puts(input2);
+    // serial_puts("\n");
+    // heapcrt(22);
+    // testblock = heapcrt(22);
+    // input2 = (char *)heapkill((void *)testblock, 22);
+    // serial_puts(input2);
+    // serial_puts("\n");
+    // stkcrt(22);
+    // testblock = stkcrt(22);
+    // input2 = (char *)stkkill((void *)testblock, 22);
+    // serial_puts(input2);
     
     /* Initialize hardware */
-    serial_init();
+
+    pid32_t pid;
+
+    proc_init();
+
+    serial_puts("creating process\n");
+
+    pid = create(test_process, 1024, 10, "test", 0);
+
+    if (pid == SYSERR) {
+        serial_puts("create failed\n");
+        return;
+    }
+
+    serial_puts("process created\n");
+
+    if (resume(pid) == SYSERR) {
+        serial_puts("resume failed\n");
+        return;
+    }
+
+    serial_puts("process is ready\n");
+
+    if (run_one(pid) == SYSERR) {
+        serial_puts("run failed\n");
+        return;
+    }
+
+    serial_puts("process terminated\n");
     
     /* Print welcome message */
     serial_puts("\n");
