@@ -41,3 +41,22 @@ pid32_t next_process(void)
 
     return selected;
 }
+
+syscall resched(void)
+{
+    pid32_t nextpid;
+    struct procent *prptr;
+
+    nextpid = next_process();
+    if (nextpid == SYSERR) {
+        return SYSERR;
+    }
+
+    prptr = &proctab[nextpid];
+    currpid = nextpid;
+    prptr->prstate = PR_CURR;
+    proc_sp = prptr->prstkptr;
+
+    ctxsw(&sched_sp, proc_sp);
+    return OK;
+}

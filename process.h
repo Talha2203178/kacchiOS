@@ -76,6 +76,7 @@ syscall kill(pid32_t pid);
 void xdone(void);
 void proc_init(void);
 int32_t run_one(pid32_t pid);
+syscall resched(void);
 pid32_t next_process(void);
 void userret(void);
 syscall getprio(pid32_t pid);

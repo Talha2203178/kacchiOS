@@ -95,12 +95,8 @@ void kmain(void) {
 
     serial_puts("process is ready\n");
 
-    while ((pid = next_process()) != SYSERR) {
+    while (resched() != SYSERR) {
         serial_puts("scheduler selected process\n");
-        if (run_one(pid) == SYSERR) {
-            serial_puts("run failed\n");
-            return;
-        }
     }
 
     serial_puts("process terminated\n");
