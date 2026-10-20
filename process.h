@@ -64,7 +64,12 @@ extern	struct	procent proctab[];
 extern	int32_t	prcount;	
 extern	pid32_t	currpid;	
 
+extern char	*sched_sp;
+extern char	*proc_sp;
+
 pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, uint32_t nargs, ...);
+void ctxsw(char **old_sp, char *new_sp);
+void ready_enqueue(pid32_t pid);
 pri16_t resume(pid32_t pid);
 syscall suspend(pid32_t pid);
 syscall kill(pid32_t pid);

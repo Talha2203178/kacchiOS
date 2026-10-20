@@ -7,12 +7,11 @@ static pid32_t newpid(void);
 
 
 pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, uint32_t nargs, ...){
-    uint32_t savsp, *pushsp;
     pid32_t pid;
     struct procent *prptr;
     int32_t i;
-    uint32_t *a;
     uint32_t *saddr;
+    volatile uint32_t *frame;
 
     if (ssize < MINSTK)
         ssize = MINSTK;
@@ -50,31 +49,21 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     prptr->prdesc[1] = DEV_CONSOLE;
     prptr->prdesc[2] = DEV_CONSOLE;
 
-    *(uint32_t *)prptr->prstkbase = STACKMAGIC;
-    // savsp = (uint32_t)saddr;
+    /* popal restores eight words, then ret enters the process. */
+    frame = (volatile uint32_t *)((char *)prptr->prstkptr -
+                                  (10 * sizeof(uint32_t)));
+    frame[0] = 0;
+    frame[1] = 0;
+    frame[2] = 0;
+    frame[3] = 0;
+    frame[4] = 0;
+    frame[5] = 0;
+    frame[6] = 0;
+    frame[7] = 0;
+    frame[8] = (uint32_t)funcaddr;
+    frame[9] = (uint32_t)userret;
 
-    // a = (uint32_t *)(&nargs + 1);
-    // a += nargs - 1;
-
-    // for (; nargs > 0; nargs--) *--saddr = *a--;
-
-    // *--saddr = (long)INITRET;
-    // *--saddr = (long)funcaddr;
-    // *--saddr = savsp;
-    // savsp = (uint32_t)saddr;
-
-    // *--saddr = 0x00000200;
-    // *--saddr = 0;
-    // *--saddr = 0;
-    // *--saddr = 0;
-    // *--saddr = 0;
-    // *--saddr = 0;
-    // pushsp = saddr;
-    // *--saddr = savsp;
-    // *--saddr = 0;
-    // *--saddr = 0;
-
-    // *pushsp = (uint32_t)(prptr->prstkptr = (char *)saddr);
+    prptr->prstkptr = (char *)frame;
     return pid;
 }
 

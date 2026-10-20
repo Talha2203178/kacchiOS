@@ -2,5 +2,9 @@
 
 void userret(void)
 {
-    kill(currpid); //currpid is temporary
+    kill(currpid);
+    ctxsw(&proc_sp, sched_sp);
+
+    for (;;) {
+    }
 }

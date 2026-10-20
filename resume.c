@@ -15,6 +15,7 @@ pri16_t resume(pid32_t pid)
     if (prptr->prstate == PR_SUSP)
     {
         prptr->prstate = PR_READY;
+        ready_enqueue(pid);
     }
     else
     {
