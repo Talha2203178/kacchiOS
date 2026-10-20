@@ -5,6 +5,8 @@
 #define NPROC		8
 #endif
 
+#define NSEM		NPROC
+
 /* Process state constants */
 
 #define PR_FREE		0	
@@ -39,6 +41,17 @@
 
 typedef void (*procfunc_t)(void);
 
+struct pidqueue {
+	pid32_t pids[NPROC];
+	int32_t count;
+};
+
+struct queuetable {
+	struct pidqueue ready;
+	struct pidqueue wait;
+	struct pidqueue sem[NSEM];
+};
+
 /* Definition of the process table (multiple of 32 bits) */
 
 struct procent {		
@@ -70,6 +83,9 @@ extern char	*proc_sp;
 pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, uint32_t nargs, ...);
 void ctxsw(char **old_sp, char *new_sp);
 void ready_enqueue(pid32_t pid);
+void wait_enqueue(pid32_t pid);
+void sem_enqueue(sid32_t sem, pid32_t pid);
+pid32_t sem_dequeue(sid32_t sem);
 pri16_t resume(pid32_t pid);
 syscall suspend(pid32_t pid);
 syscall kill(pid32_t pid);

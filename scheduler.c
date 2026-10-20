@@ -1,45 +1,90 @@
 #include "process.h"
 
-static pid32_t ready_queue[NPROC];
-static int32_t ready_count;
+static struct queuetable queues;
 char *sched_sp;
 char *proc_sp;
+
+static void enqueue_fifo(struct pidqueue *queue, pid32_t pid)
+{
+    if (queue->count < NPROC) {
+        queue->pids[queue->count++] = pid;
+    }
+}
+
+static pid32_t dequeue_front(struct pidqueue *queue)
+{
+    pid32_t pid;
+    int32_t index;
+
+    if (queue->count == 0) {
+        return SYSERR;
+    }
+
+    pid = queue->pids[0];
+    for (index = 1; index < queue->count; index++) {
+        queue->pids[index - 1] = queue->pids[index];
+    }
+    queue->count--;
+
+    return pid;
+}
 
 void ready_enqueue(pid32_t pid)
 {
     int32_t index;
 
-    if (ready_count >= NPROC) {
+    if (queues.ready.count >= NPROC) {
         return;
     }
 
-    index = ready_count;
+    index = queues.ready.count;
     while (index > 0 &&
-           proctab[ready_queue[index - 1]].prprio < proctab[pid].prprio) {
-        ready_queue[index] = ready_queue[index - 1];
+           proctab[queues.ready.pids[index - 1]].prprio < proctab[pid].prprio) {
+        queues.ready.pids[index] = queues.ready.pids[index - 1];
         index--;
     }
 
-    ready_queue[index] = pid;
-    ready_count++;
+    queues.ready.pids[index] = pid;
+    queues.ready.count++;
+}
+
+void wait_enqueue(pid32_t pid)
+{
+    enqueue_fifo(&queues.wait, pid);
+    proctab[pid].prstate = PR_WAIT;
+}
+
+void sem_enqueue(sid32_t sem, pid32_t pid)
+{
+    if (sem < 0 || sem >= NSEM) {
+        return;
+    }
+
+    enqueue_fifo(&queues.sem[sem], pid);
+    proctab[pid].prsem = sem;
+    proctab[pid].prstate = PR_WAIT;
+}
+
+pid32_t sem_dequeue(sid32_t sem)
+{
+    pid32_t pid;
+
+    if (sem < 0 || sem >= NSEM) {
+        return SYSERR;
+    }
+
+    pid = dequeue_front(&queues.sem[sem]);
+    if (pid != SYSERR) {
+        proctab[pid].prsem = -1;
+        proctab[pid].prstate = PR_READY;
+    }
+
+    return pid;
 }
 
 pid32_t next_process(void)
 {
-    pid32_t selected;
-    int32_t index;
-
-    if (ready_count == 0) {
-        return SYSERR;
-    }
-
-    selected = ready_queue[0];
-    for (index = 1; index < ready_count; index++) {
-        ready_queue[index - 1] = ready_queue[index];
-    }
-    ready_count--;
-
-    return selected;
+    return dequeue_front(&queues.ready);
 }
 
 syscall resched(void)
