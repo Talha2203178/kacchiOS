@@ -63,6 +63,8 @@ void kmain(void) {
     /* Initialize hardware */
 
     pid32_t pid;
+    pid32_t second_pid;
+    pid32_t third_pid;
 
     proc_init();
 
@@ -82,11 +84,23 @@ void kmain(void) {
         return;
     }
 
+    second_pid = create(test_process, 1024, 30, "high", 0);
+    third_pid = create(test_process, 1024, 20, "medium", 0);
+
+    if (second_pid == SYSERR || third_pid == SYSERR ||
+        resume(second_pid) == SYSERR || resume(third_pid) == SYSERR) {
+        serial_puts("additional process setup failed\n");
+        return;
+    }
+
     serial_puts("process is ready\n");
 
-    if (run_one(pid) == SYSERR) {
-        serial_puts("run failed\n");
-        return;
+    while ((pid = next_process()) != SYSERR) {
+        serial_puts("scheduler selected process\n");
+        if (run_one(pid) == SYSERR) {
+            serial_puts("run failed\n");
+            return;
+        }
     }
 
     serial_puts("process terminated\n");
