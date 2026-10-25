@@ -1,4 +1,13 @@
-#include "kacchi.h"
+#include "types.h"
+#include "process.h"
+#include "io.h"
+#include "memory.h"
+#include "queue.h"
+#include "serial.h"
+#include "string.h"
+#include "semaphore.h"
+
+qid16_t	readylist;
 
 struct procent proctab[NPROC];
 int32_t prcount;
@@ -15,5 +24,6 @@ void proc_init(void)
     proctab[NULLPROC].prstate = PR_CURR;
     currpid = NULLPROC;
     prcount = 1;
-    proc_queue_init();
+    //proc_queue_init();
+    readylist = newqueue();
 }

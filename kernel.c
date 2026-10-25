@@ -9,13 +9,20 @@
 // extern struct blockstr freemem; 
 //extern void *memsec;
 
+static void print_process(void){
+    serial_puts("Hello\n");
+}
 
 static void test_process(void)
 {
     int32_t i;
 
+    pid32_t pid;
+
     for (i = 0; i < 5; i++) {
         serial_puts("process 1 is running\n");
+        pid = create(print_process, 128, 10, "test", 0);
+        resume(pid);
     }
 
     serial_puts("process 1 is returning\n");

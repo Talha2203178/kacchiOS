@@ -1,4 +1,11 @@
-#include "kacchi.h"
+#include "types.h"
+#include "process.h"
+#include "io.h"
+#include "memory.h"
+#include "queue.h"
+#include "serial.h"
+#include "string.h"
+#include "semaphore.h"
 syscall resched(void)
 {
     struct procent *oldproc;
@@ -42,7 +49,7 @@ int ready(pid32_t pid)
     prptr = &proctab[pid];
     prptr->prstate = PR_READY;
     insert(pid, readylist, prptr->prprio);
-    rescshed();
+    resched();
 
     return OK;
 }

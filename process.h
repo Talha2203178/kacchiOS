@@ -1,10 +1,14 @@
-#include "kacchi.h"
+#ifndef PROCESS_H
+#define PROCESS_H
+
+
+#include <semaphore.h>
+#include <types.h>
+#endif
 
 #ifndef NPROC
 #define NPROC		8
 #endif
-
-
 /* Process state constants */
 
 #define PR_FREE		0	

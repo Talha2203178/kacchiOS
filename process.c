@@ -114,9 +114,9 @@ int32_t kill(pid32_t pid)
             prptr->prstate = PR_FREE;
             break;
 
-        case PR_WAIT:
-            semtab[prptr->prsem].scount++;
-            break;
+ /*      case PR_WAIT:
+            semtab[prptr->prsem].semcount++;
+            break;*/
 
         default:
             prptr->prstate = PR_FREE;
