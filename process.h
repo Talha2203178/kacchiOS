@@ -83,6 +83,7 @@ extern char	*proc_sp;
 pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, uint32_t nargs, ...);
 void ctxsw(char **old_sp, char *new_sp);
 void ready_enqueue(pid32_t pid);
+void proc_queue_init(void);
 void wait_enqueue(pid32_t pid);
 void sem_enqueue(sid32_t sem, pid32_t pid);
 pid32_t sem_dequeue(sid32_t sem);

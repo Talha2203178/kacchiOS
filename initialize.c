@@ -15,4 +15,5 @@ void proc_init(void)
     proctab[NULLPROC].prstate = PR_CURR;
     currpid = NULLPROC;
     prcount = 1;
+    proc_queue_init();
 }

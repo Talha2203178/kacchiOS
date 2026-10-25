@@ -1,66 +1,90 @@
-#include "process.h"
+#include "queue.h"
 
-static struct queuetable queues;
+struct quentry qt[NQENT];
 char *sched_sp;
 char *proc_sp;
 
-static void enqueue_fifo(struct pidqueue *queue, pid32_t pid)
+#define READYQ          (NPROC)
+#define WAITQ           (NPROC + 2)
+#define SEMQ(sem)       (NPROC + 4 + ((sem) * 2))
+
+static void queue_init(qid16_t queue)
 {
-    if (queue->count < NPROC) {
-        queue->pids[queue->count++] = pid;
+    qt[queuehead(queue)].qnext = queuetail(queue);
+    qt[queuetail(queue)].qprev = queuehead(queue);
+}
+
+static void enqueue(qid16_t queue, pid32_t pid, int32_t key)
+{
+    qid16_t current;
+    qid16_t previous;
+
+    current = firstid(queue);
+    previous = queuehead(queue);
+    while (current < NPROC && qt[current].qkey >= key) {
+        previous = current;
+        current = qt[current].qnext;
+    }
+
+    qt[pid].qkey = key;
+    qt[pid].qprev = previous;
+    qt[pid].qnext = current;
+    qt[previous].qnext = (qid16_t)pid;
+    if (current < NPROC) {
+        qt[current].qprev = (qid16_t)pid;
+    } else {
+        qt[queuetail(queue)].qprev = (qid16_t)pid;
     }
 }
 
-static pid32_t dequeue_front(struct pidqueue *queue)
+static pid32_t dequeue(qid16_t queue, bool8_t ready_only)
 {
-    pid32_t pid;
-    int32_t index;
+    qid16_t pid;
+    qid16_t next;
 
-    if (queue->count == 0) {
-        return SYSERR;
+    while (nonempty(queue)) {
+        pid = firstid(queue);
+        next = qt[pid].qnext;
+        qt[queuehead(queue)].qnext = next;
+        qt[next].qprev = queuehead(queue);
+        if (pid < NPROC && (!ready_only || proctab[pid].prstate == PR_READY)) {
+            return pid;
+        }
     }
+    return SYSERR;
+}
 
-    pid = queue->pids[0];
-    for (index = 1; index < queue->count; index++) {
-        queue->pids[index - 1] = queue->pids[index];
+void proc_queue_init(void)
+{
+    qid16_t queue;
+
+    for (queue = NPROC; queue < NQENT; queue += 2) {
+        queue_init(queue);
     }
-    queue->count--;
-
-    return pid;
 }
 
 void ready_enqueue(pid32_t pid)
 {
-    int32_t index;
-
-    if (queues.ready.count >= NPROC) {
-        return;
+    if (!isbadpid(pid)) {
+        enqueue(READYQ, pid, proctab[pid].prprio);
     }
-
-    index = queues.ready.count;
-    while (index > 0 &&
-           proctab[queues.ready.pids[index - 1]].prprio < proctab[pid].prprio) {
-        queues.ready.pids[index] = queues.ready.pids[index - 1];
-        index--;
-    }
-
-    queues.ready.pids[index] = pid;
-    queues.ready.count++;
 }
 
 void wait_enqueue(pid32_t pid)
 {
-    enqueue_fifo(&queues.wait, pid);
-    proctab[pid].prstate = PR_WAIT;
+    if (!isbadpid(pid)) {
+        enqueue(WAITQ, pid, 0);
+        proctab[pid].prstate = PR_WAIT;
+    }
 }
 
 void sem_enqueue(sid32_t sem, pid32_t pid)
 {
-    if (sem < 0 || sem >= NSEM) {
+    if (sem < 0 || sem >= NSEM || isbadpid(pid)) {
         return;
     }
 
-    enqueue_fifo(&queues.sem[sem], pid);
+    enqueue(SEMQ(sem), pid, 0);
     proctab[pid].prsem = sem;
     proctab[pid].prstate = PR_WAIT;
 }
@@ -73,7 +97,7 @@ pid32_t sem_dequeue(sid32_t sem)
         return SYSERR;
     }
 
-    pid = dequeue_front(&queues.sem[sem]);
+    pid = dequeue(SEMQ(sem), FALSE);
     if (pid != SYSERR) {
         proctab[pid].prsem = -1;
         proctab[pid].prstate = PR_READY;
@@ -84,7 +108,7 @@ pid32_t sem_dequeue(sid32_t sem)
 
 pid32_t next_process(void)
 {
-    return dequeue_front(&queues.ready);
+    return dequeue(READYQ, TRUE);
 }
 
 syscall resched(void)
