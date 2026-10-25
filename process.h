@@ -1,11 +1,9 @@
-#include "types.h"
-
+#include "kacchi.h"
 
 #ifndef NPROC
 #define NPROC		8
 #endif
 
-#define NSEM		NPROC
 
 /* Process state constants */
 
@@ -81,21 +79,19 @@ extern char	*sched_sp;
 extern char	*proc_sp;
 
 pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, uint32_t nargs, ...);
-void ctxsw(char **old_sp, char *new_sp);
-void ready_enqueue(pid32_t pid);
-void proc_queue_init(void);
-void wait_enqueue(pid32_t pid);
-void sem_enqueue(sid32_t sem, pid32_t pid);
-pid32_t sem_dequeue(sid32_t sem);
 pri16_t resume(pid32_t pid);
 syscall suspend(pid32_t pid);
 syscall kill(pid32_t pid);
 void xdone(void);
-void proc_init(void);
-int32_t run_one(pid32_t pid);
-syscall resched(void);
-pid32_t next_process(void);
-void userret(void);
 syscall getprio(pid32_t pid);
 pid32_t getpid(void);
 pri16_t chprio(pid32_t pid, pri16_t newprio);
+
+void proc_init(void);
+int32_t run_one(pid32_t pid);
+
+syscall resched(void);
+int ready(pid32_t pid);
+void ctxsw(char **old_sp, char *new_sp);
+
+void userret(void);

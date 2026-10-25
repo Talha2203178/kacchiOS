@@ -1,5 +1,4 @@
 #include "kacchi.h"
-#include "queue.h"
 
 struct quentry qt[NQENT];
 

@@ -1,4 +1,4 @@
-#include "process.h"
+#include "kacchi.h"
 
 struct procent proctab[NPROC];
 int32_t prcount;
