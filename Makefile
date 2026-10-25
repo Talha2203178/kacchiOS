@@ -9,7 +9,7 @@ ASFLAGS = --32
 LDFLAGS = -m elf_i386
 
 OBJS = boot.o kernel.o serial.o string.o memory.o initialize.o create.o resume.o suspend.o kill.o xdone.o userret.o run_one.o scheduler.o getprio.o getpid.o chprio.o
-OBJS = boot.o ctxsw.o kernel.o serial.o string.o memory.o initialize.o create.o resume.o suspend.o kill.o xdone.o userret.o run_one.o scheduler.o getprio.o getpid.o chprio.o
+OBJS = boot.o ctxsw.o kernel.o serial.o string.o memory.o initialize.o create.o resume.o suspend.o kill.o xdone.o userret.o run_one.o queue.o scheduler.o getprio.o getpid.o chprio.o
 
 all: kernel.elf
 

@@ -30,4 +30,12 @@ extern struct quentry qt[];
 
 #define isbadqid(x)    ((int32_t)(x) < 0 || (int32_t)(x) >= NQENT - 1)
 
+pid32_t getfirst(qid16_t q);
+pid32_t getlast(qid16_t q);
+pid32_t getitem(pid32_t pid);
+pid32_t enqueue(pid32_t pid, qid16_t q);
+pid32_t dequeue(qid16_t q);
+int insert(pid32_t pid, qid16_t q, int32_t key);
+qid16_t newqueue(void);
+
 #endif
