@@ -86,6 +86,7 @@ char *heapkill(void *memptr, uint32_t nbytes)
     if ((top > (uint32_t)block)
         || ((next != NULL) && ((uint32_t)block + nbytes) > (uint32_t)next))
     {
+        serial_puts("error2\n");
          return (char *) "error2\n";
     }
 
@@ -105,7 +106,7 @@ char *heapkill(void *memptr, uint32_t nbytes)
         prev->next = block;
          serial_puts("did not match\n");
     }
-
+    serial_puts("heck\n");
     /* coalesce with next block if adjacent */
     if (((uint32_t)block + block->size) == (uint32_t)next)
     {
@@ -113,6 +114,7 @@ char *heapkill(void *memptr, uint32_t nbytes)
         block->next = next->next;
          serial_puts("second phase\n");
     }
+    serial_puts("heapkill returning\n");
      return (char *) "done\n";
 }
 
@@ -160,7 +162,7 @@ void *stkcrt(uint32_t nbytes)
     }
     else
     {
-        serial_puts("take top portion for stack\n");
+       // serial_puts("take top portion for stack\n");
         fits->size -= nbytes;
         fits = (struct blockstr *)((uint32_t)fits + fits->size);
     }

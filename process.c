@@ -31,7 +31,8 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     prptr->prprio = priority;
     prptr->prstklen = ssize;
     prptr->prstkptr = (char *)saddr;
-    prptr->prstkbase = (char *)saddr - ssize + sizeof(uint32_t);
+    //prptr->prstkbase = (char *)saddr - ssize + sizeof(uint32_t);
+    prptr->prstkbase = (char *)saddr;;
     strcpy(prptr->prname, name);
     prptr->prname[PNMLEN - 1] = '\0';
     prptr->prsem = -1;
@@ -60,6 +61,7 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     frame[9] = (uint32_t)userret;
 
     prptr->prstkptr = (char *)frame;
+    serial_puts("process created\n");
     return pid;
 }
 
@@ -85,6 +87,7 @@ static pid32_t newpid(void)
 
 int32_t kill(pid32_t pid)
 {
+    serial_puts("killing process\n");
     struct procent *prptr;
 
     if (isbadpid(pid) || pid == NULLPROC) {
@@ -97,11 +100,13 @@ int32_t kill(pid32_t pid)
         xdone();
     }
 
-    stkkill(prptr->prstkptr, prptr->prstklen);
+    stkkill(prptr->prstkbase, prptr->prstklen);
+    serial_puts("stack killed\n");
 
     switch (prptr->prstate) {
         case PR_CURR:
             prptr->prstate = PR_FREE;
+            serial_puts("current process killed\n");
             resched();
             break;
 
@@ -114,22 +119,18 @@ int32_t kill(pid32_t pid)
             prptr->prstate = PR_FREE;
             break;
 
- /*      case PR_WAIT:
+       case PR_WAIT:
             semtab[prptr->prsem].semcount++;
-            break;*/
+            break;
 
         default:
             prptr->prstate = PR_FREE;
     }
 
-    if (prcount > 0) {
-        prcount--;
-    }
-
     if (currpid == pid) {
         currpid = NULLPROC;
     }
-
+    serial_puts("process killed\n");
     return OK;
 }
 
@@ -166,24 +167,14 @@ pri16_t resume(pid32_t pid)
 {
     struct procent *prptr;
 
-    if (isbadpid(pid))
-    {
+    if (isbadpid(pid)) {
         return SYSERR;
     }
-
     prptr = &proctab[pid];
-
-    if (prptr->prstate == PR_SUSP)
-    {
-        prptr->prstate = PR_READY;
-        ready(pid);
-    }
-    else
-    {
+    if (prptr->prstate != PR_SUSP) {
         return SYSERR;
     }
-
-    return OK;
+    return ready(pid);
 }
 
 pid32_t getpid(void)

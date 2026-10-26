@@ -16,6 +16,7 @@ syscall resched(void)
     if (oldproc->prstate == PR_CURR) {
         if (nonempty(readylist) &&
             oldproc->prprio > firstkey(readylist)) {
+            //serial_puts("\nresched: putting current process back to ready list\n");
             return OK;
         }
         oldproc->prstate = PR_READY;

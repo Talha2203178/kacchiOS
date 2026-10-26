@@ -17,10 +17,14 @@ static void print_process(void){
     serial_puts("Hello\n");
 }
 
+static void print_process4(void){
+    serial_puts("Hello\n");
+}
+
 static void print_process2(void){
-    serial_puts("Hello0\n");
-        //pid32_t  pid = create(print_process, 64, 10, "test", 0);
-        //resume(pid);
+    //serial_puts("Hello0\n");
+        pid32_t  pid = create(print_process4, 512, 10, "test", 0);
+       resume(pid);
     //resched();
     wait(test_sem);
     serial_puts("Hello1\n");
@@ -28,7 +32,7 @@ static void print_process2(void){
 
 static void print_process3(void){
     //pid32_t pid;
-    //signal(test_sem);
+    signal(test_sem);
     serial_puts("Hello2\n");
 }
 
@@ -37,19 +41,26 @@ static void test_process(void)
     int32_t i;
     test_sem = semcreate(0);
     pid32_t pid;
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 2; i++) {
         serial_puts("process 1 is running\n");
-        pid = create(print_process, 64, 10, "test", 0);
+        pid = create(print_process, 512, 10, "test", 0);
         resume(pid);
     }
+    
     serial_puts("process 1 is 1\n");
-    pid = create(print_process2, 64, 10, "test", 0);
+    pid = create(print_process2, 512, 60, "test", 0);
     resume(pid);
     serial_puts("process 1 is 2\n");
-    pid = create(print_process3, 64, 9, "test", 0);
+    pid = create(print_process3, 512, 40, "test", 0);
     resume(pid); 
-    //pid = create(print_process, 64, 9, "test", 0);
-    //resume(pid); 
+    
+    //serial_puts("process 1 is 2\n");
+    /*pid = create(print_process, 64, 10, "test", 0);
+    resume(pid); 
+    pid = create(print_process3, 64, 10, "test", 0);
+    resume(pid); 
+    pid = create(print_process, 64, 10, "test", 0);
+    resume(pid); */
     serial_puts("process 1 is returning\n");
 }
 
@@ -113,14 +124,14 @@ void kmain(void) {
         return;
     }
 
-    serial_puts("process created\n");
+    //serial_puts("process created\n");
 
     if (resume(pid) == SYSERR) {
         serial_puts("resume failed\n");
         return;
     }
-
-    second_pid = create(test_process, 1024, 30, "high", 0);
+    serial_puts("process resumed\n");
+    /*second_pid = create(test_process, 1024, 30, "high", 0);
     third_pid = create(test_process, 1024, 20, "medium", 0);
 
     if (second_pid == SYSERR || third_pid == SYSERR ||
@@ -135,7 +146,7 @@ void kmain(void) {
         serial_puts("scheduler selected process\n");
     }
 
-    serial_puts("process terminated\n");
+    serial_puts("process terminated\n");*/
     
     /* Print welcome message */
     serial_puts("\n");
