@@ -4,27 +4,52 @@
 #include "string.h"
 #include "memory.h"
 #include "process.h"
+#include "semaphore.h"
 
 #define MAX_INPUT 128
 // extern struct blockstr freemem; 
 //extern void *memsec;
 
+sid32_t test_sem;
+
+
 static void print_process(void){
     serial_puts("Hello\n");
+}
+
+static void print_process2(void){
+    serial_puts("Hello0\n");
+        //pid32_t  pid = create(print_process, 64, 10, "test", 0);
+        //resume(pid);
+    //resched();
+    wait(test_sem);
+    serial_puts("Hello1\n");
+}
+
+static void print_process3(void){
+    //pid32_t pid;
+    //signal(test_sem);
+    serial_puts("Hello2\n");
 }
 
 static void test_process(void)
 {
     int32_t i;
-
+    test_sem = semcreate(0);
     pid32_t pid;
-
     for (i = 0; i < 5; i++) {
         serial_puts("process 1 is running\n");
-        pid = create(print_process, 128, 10, "test", 0);
+        pid = create(print_process, 64, 10, "test", 0);
         resume(pid);
     }
-
+    serial_puts("process 1 is 1\n");
+    pid = create(print_process2, 64, 10, "test", 0);
+    resume(pid);
+    serial_puts("process 1 is 2\n");
+    pid = create(print_process3, 64, 9, "test", 0);
+    resume(pid); 
+    //pid = create(print_process, 64, 9, "test", 0);
+    //resume(pid); 
     serial_puts("process 1 is returning\n");
 }
 
@@ -38,6 +63,8 @@ void kmain(void) {
     // char *input2;
 
     /* Initialize free memory list */
+
+    serial_puts("creating process\n");
 
     char *memory_start;
     memory_start = (char *)highbyte((uint32_t)memsec);
@@ -73,9 +100,11 @@ void kmain(void) {
     pid32_t second_pid;
     pid32_t third_pid;
 
+    
+
     proc_init();
 
-    serial_puts("creating process\n");
+    
 
     pid = create(test_process, 1024, 10, "test", 0);
 

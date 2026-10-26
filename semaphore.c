@@ -1,6 +1,13 @@
-#include "kacchi.h"
+#include "types.h"
+#include "process.h"
+#include "io.h"
+#include "memory.h"
+#include "queue.h"
+#include "serial.h"
+#include "string.h"
+#include "semaphore.h"
 
-static sid32_t newsem(void);
+ sid32_t newsem(void);
 
 syscall wait(sid32_t sem)
 {
@@ -14,17 +21,18 @@ syscall wait(sid32_t sem)
 
     semptr = &semtab[sem];
 
-    if (semptr->sstate == SEM_FREE)
+    if (semptr->semstate == SEM_FREE)
     {
         return SYSERR;
     }
 
-    if (--(semptr->scount) < 0)
+    if (--(semptr->semcount) < 0)
     {
         prptr = &proctab[currpid];
         prptr->prstate = PR_WAIT;
         prptr->prsem = sem;
         enqueue(currpid, semptr->semqueue);
+        serial_puts("\nin wait\n");
         resched();  
     }
 
@@ -34,7 +42,7 @@ syscall wait(sid32_t sem)
 syscall signal(sid32_t sem)
 {
     struct sentry *semptr;
-
+    pid32_t i;
 
     if (isbadsem(sem))
     {
@@ -43,14 +51,17 @@ syscall signal(sid32_t sem)
 
     semptr = &semtab[sem];
 
-    if (semptr->sstate == SEM_FREE)
+    if (semptr->semstate == SEM_FREE)
     {
         return SYSERR;
     }
 
-    if ((semptr->scount)++ < 0)
+    if ((semptr->semcount)++ < 0)
     {
-        ready(dequeue(semptr->semqueue));
+        serial_puts("\nin signal\n");
+        i = dequeue(semptr->semqueue);
+        serial_puts("\nin signal after dequeue\n");
+        ready(i);
     }
 
     return OK;
@@ -70,11 +81,11 @@ sid32_t semcreate(int32_t count)
     {
         return SYSERR;
     }
-
+    semtab[sem].semcount = count;
     return sem;
 }
 
-static sid32_t newsem(void)
+ sid32_t newsem(void)
 {
     static sid32_t nextsem = 0;
     sid32_t sem;
@@ -83,9 +94,9 @@ static sid32_t newsem(void)
     {
         sem = nextsem;
         nextsem = (nextsem + 1) % NSEM;
-        if (semtab[sem].sstate == SEM_FREE)
+        if (semtab[sem].semstate == SEM_FREE)
         {
-            semtab[sem].sstate = SEM_USED;
+            semtab[sem].semstate = SEM_USED;
             return sem;
         }
     }
@@ -104,7 +115,7 @@ syscall semdelete(sid32_t sem)
 
     semptr = &semtab[sem];
 
-    if (semptr->sstate == SEM_FREE)
+    if (semptr->semstate == SEM_FREE)
     {
         return SYSERR;
     }
@@ -114,7 +125,7 @@ syscall semdelete(sid32_t sem)
         ready(getfirst(semptr->semqueue));
     }
 
-    semptr->sstate = SEM_FREE;
+    semptr->semstate = SEM_FREE;
 
     return OK;
 }
@@ -133,7 +144,7 @@ syscall semreset(sid32_t sem, int32_t count)
 
     semptr = &semtab[sem];
 
-    if (semptr->sstate == SEM_FREE)
+    if (semptr->semstate == SEM_FREE)
     {
         return SYSERR;
     }
@@ -143,7 +154,7 @@ syscall semreset(sid32_t sem, int32_t count)
         ready(getfirst(semptr->semqueue));
     }
 
-    semptr->scount = count;
+    semptr->semcount = count;
 
     return OK;
 }

@@ -19,8 +19,7 @@ struct quentry {
 
 extern struct quentry qt[];
 extern	qid16_t	readylist;
-extern qid16_t waitlist;
-extern qid16_t semlist;
+
 
 #define queuehead(q)   (q)
 #define queuetail(q)   ((q) + 1)
