@@ -14,7 +14,6 @@ stack_top:
 .section .text
 .global start
 .extern kmain
-//.extern memheap
 
 start:
     cli                             /* disable interrupts */
@@ -25,9 +24,6 @@ start:
     mov $__bss_end, %ecx
     sub %edi, %ecx
     xor %al, %al
- /*   mov %ecx, %eax
-    add $4, %eax
-    mov %eax, memheap */
     rep stosb
     
     call kmain                      /* jump to C kernel */

@@ -97,24 +97,24 @@ char *heapkill(void *memptr, uint32_t nbytes)
     {
         prev->size += nbytes;
         block = prev;
-         serial_puts("matched\n");
+         //serial_puts("matched\n");
     }
     else
     {
         block->next = next;
         block->size = nbytes;
         prev->next = block;
-         serial_puts("did not match\n");
+        // serial_puts("did not match\n");
     }
-    serial_puts("heck\n");
+    //serial_puts("heck\n");
     /* coalesce with next block if adjacent */
     if (((uint32_t)block + block->size) == (uint32_t)next)
     {
         block->size += next->size;
         block->next = next->next;
-         serial_puts("second phase\n");
+         //serial_puts("second phase\n");
     }
-    serial_puts("heapkill returning\n");
+    //serial_puts("heapkill returning\n");
      return (char *) "done\n";
 }
 
@@ -157,7 +157,7 @@ void *stkcrt(uint32_t nbytes)
 
     if (nbytes == fits->size)
     {
-        serial_puts("Block matched exactly in stack\n");
+       // serial_puts("Block matched exactly in stack\n");
         fitsprev->next = fits->next;
     }
     else

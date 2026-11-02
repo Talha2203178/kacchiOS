@@ -13,6 +13,26 @@
 sid32_t test_sem;
 
 
+static void add_process(char a, char b, char c){
+    b = b+1;
+    a = a+1;
+    serial_puts("add process\n");
+    serial_putc(a);
+    serial_puts("\n");
+    serial_putc(b);
+    serial_puts("\n");
+    serial_putc(c);
+    serial_puts("\n");
+    /*char x = '5';
+    if (x > '3'){
+        x--;
+        add_process('a', 'b', 'c');
+    }
+    else{
+        return;
+    }*/
+}
+
 static void print_process(void){
     serial_puts("Hello\n");
 }
@@ -22,16 +42,13 @@ static void print_process4(void){
 }
 
 static void print_process2(void){
-    //serial_puts("Hello0\n");
-        pid32_t  pid = create(print_process4, 512, 10, "test", 0);
-       resume(pid);
-    //resched();
+    pid32_t  pid = create(print_process4, 512, 10, "test", 0);
+    resume(pid);
     wait(test_sem);
     serial_puts("Hello1\n");
 }
 
 static void print_process3(void){
-    //pid32_t pid;
     signal(test_sem);
     serial_puts("Hello2\n");
 }
@@ -42,25 +59,19 @@ static void test_process(void)
     test_sem = semcreate(0);
     pid32_t pid;
     for (i = 0; i < 2; i++) {
-        serial_puts("process 1 is running\n");
         pid = create(print_process, 512, 10, "test", 0);
         resume(pid);
     }
     
-    serial_puts("process 1 is 1\n");
     pid = create(print_process2, 512, 60, "test", 0);
     resume(pid);
-    serial_puts("process 1 is 2\n");
     pid = create(print_process3, 512, 40, "test", 0);
     resume(pid); 
-    
-    //serial_puts("process 1 is 2\n");
-    /*pid = create(print_process, 64, 10, "test", 0);
-    resume(pid); 
-    pid = create(print_process3, 64, 10, "test", 0);
-    resume(pid); 
-    pid = create(print_process, 64, 10, "test", 0);
-    resume(pid); */
+    pid = create(add_process, 512, 10, "test", 3, 'c', 'b', 'a');
+    resume(pid);
+
+     pid = create(print_process4, 512, 5, "test", 0);
+       resume(pid);
     serial_puts("process 1 is returning\n");
 }
 
@@ -70,11 +81,6 @@ void kmain(void) {
     char input[MAX_INPUT];
     int pos = 0;
     struct blockstr *pmblock;  
-    // void *testblock;
-    // char *input2;
-
-    /* Initialize free memory list */
-
     serial_puts("creating process\n");
 
     char *memory_start;
@@ -111,11 +117,7 @@ void kmain(void) {
     pid32_t second_pid;
     pid32_t third_pid;
 
-    
-
     proc_init();
-
-    
 
     pid = create(test_process, 1024, 10, "test", 0);
 
@@ -131,22 +133,6 @@ void kmain(void) {
         return;
     }
     serial_puts("process resumed\n");
-    /*second_pid = create(test_process, 1024, 30, "high", 0);
-    third_pid = create(test_process, 1024, 20, "medium", 0);
-
-    if (second_pid == SYSERR || third_pid == SYSERR ||
-        resume(second_pid) == SYSERR || resume(third_pid) == SYSERR) {
-        serial_puts("additional process setup failed\n");
-        return;
-    }
-
-    serial_puts("process is ready\n");
-
-    while (resched() != SYSERR) {
-        serial_puts("scheduler selected process\n");
-    }
-
-    serial_puts("process terminated\n");*/
     
     /* Print welcome message */
     serial_puts("\n");

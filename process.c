@@ -8,6 +8,7 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     int32_t i;
     uint32_t *saddr;
     volatile uint32_t *frame;
+    uint32_t *a; 
 
     if (ssize < MINSTK)
         ssize = MINSTK;
@@ -45,6 +46,15 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     prptr->prdesc[0] = DEV_CONSOLE;
     prptr->prdesc[1] = DEV_CONSOLE;
     prptr->prdesc[2] = DEV_CONSOLE;
+
+    a = (uint32_t *)(&nargs + 1);
+    a += nargs - 1;
+
+    for (; nargs > 0; nargs--){
+        *--saddr = *a--;   //compiler expects initret
+    }
+
+    prptr->prstkptr = (char *)saddr;
 
     /* popal restores eight words, then ret enters the process. */
     frame = (volatile uint32_t *)((char *)prptr->prstkptr -
@@ -87,7 +97,7 @@ static pid32_t newpid(void)
 
 int32_t kill(pid32_t pid)
 {
-    serial_puts("killing process\n");
+    //serial_puts("killing process\n");
     struct procent *prptr;
 
     if (isbadpid(pid) || pid == NULLPROC) {
@@ -101,12 +111,12 @@ int32_t kill(pid32_t pid)
     }
 
     stkkill(prptr->prstkbase, prptr->prstklen);
-    serial_puts("stack killed\n");
+   // serial_puts("stack killed\n");
 
     switch (prptr->prstate) {
         case PR_CURR:
             prptr->prstate = PR_FREE;
-            serial_puts("current process killed\n");
+            //serial_puts("current process killed\n");
             resched();
             break;
 
@@ -130,7 +140,7 @@ int32_t kill(pid32_t pid)
     if (currpid == pid) {
         currpid = NULLPROC;
     }
-    serial_puts("process killed\n");
+    //serial_puts("process killed\n");
     return OK;
 }
 

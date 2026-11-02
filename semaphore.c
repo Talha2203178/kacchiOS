@@ -32,7 +32,7 @@ syscall wait(sid32_t sem)
         prptr->prstate = PR_WAIT;
         prptr->prsem = sem;
         enqueue(currpid, semptr->semqueue);
-        serial_puts("\nin wait\n");
+        //serial_puts("\nin wait\n");
         resched();  
     }
 
@@ -58,9 +58,9 @@ syscall signal(sid32_t sem)
 
     if ((semptr->semcount)++ < 0)
     {
-        serial_puts("\nin signal\n");
+        //serial_puts("\nin signal\n");
         i = dequeue(semptr->semqueue);
-        serial_puts("\nin signal after dequeue\n");
+        //serial_puts("\nin signal after dequeue\n");
         ready(i);
     }
 
