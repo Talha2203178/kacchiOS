@@ -19,6 +19,7 @@ struct quentry {
 
 extern struct quentry qt[];
 extern	qid16_t	readylist;
+extern qid16_t msgwaitlist;
 
 
 #define queuehead(q)   (q)

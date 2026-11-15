@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "process.h"
 #include "semaphore.h"
+#include <ipc.h>
 
 #define MAX_INPUT 128
 // extern struct blockstr freemem; 
@@ -12,7 +13,17 @@
 
 sid32_t test_sem;
 
-
+void test_recvmsg(void){
+    struct msgstk stk;
+    stk = rcvmsg();
+    serial_puts("Received message:\n");
+    serial_puts((char *)stk.stkbase);
+    stkkill((void *)stk.stkbase, stk.nobytes);
+}
+void test_sendmsg(void){
+    char *msg = "This is a message\n";
+    sendmsg(msg, strlen(msg));
+}
 static void add_process(char a, char b, char c){
     b = b+1;
     a = a+1;
@@ -73,6 +84,10 @@ static void test_process(void)
      pid = create(print_process4, 512, 5, "test", 0);
        resume(pid);
     serial_puts("process 1 is returning\n");
+    pid = create(test_recvmsg, 512, 10, "test", 0);
+    resume(pid);
+    pid = create(test_sendmsg, 512, 10, "test", 0);
+    resume(pid);
 }
 
 void kmain(void) {

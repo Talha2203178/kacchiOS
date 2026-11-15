@@ -16,6 +16,7 @@
 #define PR_READY	2
 #define PR_SUSP		3	
 #define PR_WAIT		4	
+#define PR_MSGWAIT  5
 
 /* Miscellaneous process definitions */
 
