@@ -2,9 +2,11 @@
 .global ctxsw
 
 ctxsw:
+    pushfl
     pushal
-    movl 36(%esp), %eax
+    movl 40(%esp), %eax
     movl %esp, (%eax)
-    movl 40(%esp), %esp
+    movl 44(%esp), %esp
     popal
+    popfl
     ret

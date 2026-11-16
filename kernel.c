@@ -13,6 +13,18 @@
 
 sid32_t test_sem;
 
+void test_time_quanta1(void){
+    for(;;){
+        serial_puts("Test Process 1\n");
+    }
+}
+
+void test_time_quanta2(void){
+    for(;;){
+        serial_puts("Test Process 2\n");
+    }
+}
+
 void test_recvmsg(void){
     struct msgstk stk;
     stk = rcvmsg();
@@ -74,19 +86,24 @@ static void test_process(void)
         resume(pid);
     }
     
-    pid = create(print_process2, 512, 60, "test", 0);
+    pid = create(print_process2, 512, 10, "test", 0);
     resume(pid);
-    pid = create(print_process3, 512, 40, "test", 0);
+    pid = create(print_process3, 512, 10, "test", 0);
     resume(pid); 
     pid = create(add_process, 512, 10, "test", 3, 'c', 'b', 'a');
     resume(pid);
 
-     pid = create(print_process4, 512, 5, "test", 0);
+     pid = create(print_process4, 512, 10, "test", 0);
        resume(pid);
     serial_puts("process 1 is returning\n");
     pid = create(test_recvmsg, 512, 10, "test", 0);
     resume(pid);
     pid = create(test_sendmsg, 512, 10, "test", 0);
+    resume(pid);
+    pid = create(test_time_quanta1, 512, 10, "test", 0);
+    __asm__ volatile("sti");
+    resume(pid);
+    pid = create(test_time_quanta2, 512, 10, "test", 0);
     resume(pid);
 }
 
@@ -134,7 +151,7 @@ void kmain(void) {
 
     proc_init();
 
-    pid = create(test_process, 1024, 10, "test", 0);
+    pid = create(test_process, 2048, 10, "test", 0);
 
     if (pid == SYSERR) {
         serial_puts("create failed\n");

@@ -1,4 +1,14 @@
-#include "kacchi.h"
+#include "types.h"
+#include "process.h"
+#include "io.h"
+#include "memory.h"
+#include "queue.h"
+#include "serial.h"
+#include "string.h"
+#include "semaphore.h"
+#include <ipc.h>
+#include <idt.h>
+#include <interrupts.h>
 
 static pid32_t newpid(void);
 
@@ -10,18 +20,22 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     volatile uint32_t *frame;
     uint32_t *a; 
 
+    //uint32_t mask = irq_save();
+
     if (ssize < MINSTK)
         ssize = MINSTK;
     ssize = (uint32_t)highbyte(ssize);
 
     if ((pid = newpid()) == SYSERR)
     {
+        //irq_restore(mask);
         return SYSERR;
     }
 
     saddr = (uint32_t *)stkcrt(ssize);
 
     if (saddr == NULL) {
+        //irq_restore(mask);
         return SYSERR;
     }
 
@@ -58,7 +72,7 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
 
     /* popal restores eight words, then ret enters the process. */
     frame = (volatile uint32_t *)((char *)prptr->prstkptr -
-                                  (10 * sizeof(uint32_t)));
+                                  (11 * sizeof(uint32_t)));
     frame[0] = 0;
     frame[1] = 0;
     frame[2] = 0;
@@ -67,11 +81,14 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     frame[5] = 0;
     frame[6] = 0;
     frame[7] = 0;
-    frame[8] = (uint32_t)funcaddr;
-    frame[9] = (uint32_t)userret;
+    frame[8] = 0x202;
+    frame[9] = (uint32_t)funcaddr;
+    frame[10] = (uint32_t)userret;
 
     prptr->prstkptr = (char *)frame;
     serial_puts("process created\n");
+    //irq_restore(mask);
+    serial_puts("process created2\n");
     return pid;
 }
 
@@ -100,7 +117,10 @@ int32_t kill(pid32_t pid)
     //serial_puts("killing process\n");
     struct procent *prptr;
 
+    uint32_t mask = irq_save();
+
     if (isbadpid(pid) || pid == NULLPROC) {
+        irq_restore(mask);
         return SYSERR;
     }
 
@@ -141,6 +161,7 @@ int32_t kill(pid32_t pid)
         currpid = NULLPROC;
     }
     //serial_puts("process killed\n");
+    irq_restore(mask);
     return OK;
 }
 
@@ -148,8 +169,11 @@ syscall suspend(pid32_t pid)
 {
     struct procent *prptr;
 
+    uint32_t mask = irq_save();
+
     if (isbadpid(pid) || (pid == NULLPROC))
     {
+        irq_restore(mask);
         return SYSERR;
     }
 
@@ -167,9 +191,10 @@ syscall suspend(pid32_t pid)
     }
     else
     {
+        irq_restore(mask);
         return SYSERR;
     }
-
+    irq_restore(mask);
     return OK;
 }
 
@@ -177,13 +202,18 @@ pri16_t resume(pid32_t pid)
 {
     struct procent *prptr;
 
+    uint32_t mask = irq_save();
+
     if (isbadpid(pid)) {
+        irq_restore(mask);
         return SYSERR;
     }
     prptr = &proctab[pid];
     if (prptr->prstate != PR_SUSP) {
+        irq_restore(mask);
         return SYSERR;
     }
+    irq_restore(mask);
     return ready(pid);
 }
 

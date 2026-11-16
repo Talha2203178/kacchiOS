@@ -8,7 +8,7 @@ CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -nostdinc \
 ASFLAGS = --32
 LDFLAGS = -m elf_i386
 
-OBJS = boot.o ctxsw.o kernel.o serial.o string.o memory.o initialize.o xdone.o userret.o queue.o scheduler.o process.o semaphore.o ipc.o
+OBJS = boot.o ctxsw.o kernel.o serial.o string.o memory.o initialize.o xdone.o userret.o queue.o scheduler.o process.o semaphore.o ipc.o idt.o isr.o idts.o interrupts.o
 
 all: kernel.elf
 

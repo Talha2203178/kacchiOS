@@ -7,6 +7,7 @@
 #include "string.h"
 #include "semaphore.h"
 #include <ipc.h>
+#include <idt.h>
 
 qid16_t	readylist;
 qid16_t msgwaitlist;
@@ -22,6 +23,7 @@ void proc_init(void)
 {                                           //Temporary
     int32_t i;
 
+    init_idt();
     currmsg = 0;
     for (i = 0; i < NPROC; i++) {
         proctab[i].prstate = PR_FREE;
@@ -39,4 +41,5 @@ void proc_init(void)
         semtab[i].semqueue = newqueue();
     }
     msgwaitlist = newqueue();
+   
 }
