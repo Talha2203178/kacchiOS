@@ -28,14 +28,14 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
 
     if ((pid = newpid()) == SYSERR)
     {
-        //irq_restore(mask);
+        irq_restore(mask);
         return SYSERR;
     }
 
     saddr = (uint32_t *)stkcrt(ssize);
 
     if (saddr == NULL) {
-        //irq_restore(mask);
+        irq_restore(mask);
         return SYSERR;
     }
 

@@ -6,6 +6,7 @@
 #include "serial.h"
 #include "string.h"
 #include "semaphore.h"
+#include <interrupts.h>
 
  sid32_t newsem(void);
 
@@ -13,9 +14,11 @@ syscall wait(sid32_t sem)
 {
     struct procent *prptr;
     struct sentry *semptr;
+    uint32_t mask = irq_save();
 
     if (isbadsem(sem))
     {
+        irq_restore(mask);
         return SYSERR;
     }
 
@@ -23,6 +26,7 @@ syscall wait(sid32_t sem)
 
     if (semptr->semstate == SEM_FREE)
     {
+        irq_restore(mask);
         return SYSERR;
     }
 
@@ -36,6 +40,7 @@ syscall wait(sid32_t sem)
         resched();  
     }
 
+    irq_restore(mask);
     return OK;
 }
 
@@ -43,9 +48,11 @@ syscall signal(sid32_t sem)
 {
     struct sentry *semptr;
     pid32_t i;
+    uint32_t mask = irq_save();
 
     if (isbadsem(sem))
     {
+        irq_restore(mask);
         return SYSERR;
     }
 
@@ -53,6 +60,7 @@ syscall signal(sid32_t sem)
 
     if (semptr->semstate == SEM_FREE)
     {
+        irq_restore(mask);
         return SYSERR;
     }
 
@@ -64,24 +72,29 @@ syscall signal(sid32_t sem)
         ready(i);
     }
 
+    irq_restore(mask);
     return OK;
 }
 
 sid32_t semcreate(int32_t count)
 {
     sid32_t sem;
+    uint32_t mask = irq_save();
 
     if (count < 0)
     {
+        irq_restore(mask);
         return SYSERR;
     }
 
     sem = newsem();
     if (sem == SYSERR)
     {
+        irq_restore(mask);
         return SYSERR;
     }
     semtab[sem].semcount = count;
+    irq_restore(mask);
     return sem;
 }
 

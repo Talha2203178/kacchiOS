@@ -82,7 +82,7 @@ static void test_process(void)
     test_sem = semcreate(0);
     pid32_t pid;
     for (i = 0; i < 2; i++) {
-        pid = create(print_process, 1024, 8, "test", 0);
+        pid = create(print_process, 1024, 10, "test", 0);
         resume(pid);
     }
     
@@ -98,7 +98,7 @@ static void test_process(void)
     serial_puts("process 1 is returning\n");
     pid = create(test_recvmsg, 1024, 10, "test", 0);
     resume(pid);
-    pid = create(test_sendmsg, 1024, 10, "test", 0);
+    pid = create(test_sendmsg, 1024, 8, "test", 0);
     resume(pid);
     pid = create(test_time_quanta1, 2048, 10, "test", 0);
     //__asm__ volatile("sti");

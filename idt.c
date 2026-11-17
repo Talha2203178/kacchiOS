@@ -2,6 +2,7 @@
 #include <process.h>
 #include <io.h>
 #include <serial.h>
+#include <queue.h>
 
 static void idt_gate(uint8_t idt_num, uint16_t segment, uint32_t offset, uint8_t types);
 void init_idt();
@@ -44,6 +45,20 @@ void init_idt(){
 
 void timer_interrupt_2(void){
     //serial_puts("Test Interrupt IN the end it doesn't even matter\n");
+    struct procent *prptr;
+    pid32_t first_item = getfirst(readylist);
+    while(first_item < NPROC){
+        prptr = &proctab[first_item];
+        if (prptr->prprio < MAXKEY) {
+            prptr->prprio++;
+        }
+        first_item = qt[first_item].qnext;
+    }
+    first_item = currpid;
+    prptr = &proctab[first_item];
+    if (prptr->prprio < MINKEY) {
+        prptr->prprio--;
+    }
     outb(0x20, 0x20);
     resched();
 }
