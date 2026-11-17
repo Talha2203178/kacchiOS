@@ -10,6 +10,7 @@ irq_save:
     ret
 
 irq_restore:
-    push dword [esp + 4]
+    mov eax, [esp + 4]
+    push eax
     popfd
     ret

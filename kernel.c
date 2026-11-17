@@ -14,13 +14,13 @@
 sid32_t test_sem;
 
 void test_time_quanta1(void){
-    for(;;){
+    for(int i = 0; i < 1000; i++){
         serial_puts("Test Process 1\n");
     }
 }
 
 void test_time_quanta2(void){
-    for(;;){
+    for(int i = 0; i < 1000; i++){
         serial_puts("Test Process 2\n");
     }
 }
@@ -65,7 +65,7 @@ static void print_process4(void){
 }
 
 static void print_process2(void){
-    pid32_t  pid = create(print_process4, 512, 10, "test", 0);
+    pid32_t  pid = create(print_process4, 1024, 10, "test", 0);
     resume(pid);
     wait(test_sem);
     serial_puts("Hello1\n");
@@ -82,28 +82,28 @@ static void test_process(void)
     test_sem = semcreate(0);
     pid32_t pid;
     for (i = 0; i < 2; i++) {
-        pid = create(print_process, 512, 10, "test", 0);
+        pid = create(print_process, 1024, 8, "test", 0);
         resume(pid);
     }
     
-    pid = create(print_process2, 512, 10, "test", 0);
+    pid = create(print_process2, 1024, 10, "test", 0);
     resume(pid);
-    pid = create(print_process3, 512, 10, "test", 0);
+    pid = create(print_process3, 1024, 10, "test", 0);
     resume(pid); 
-    pid = create(add_process, 512, 10, "test", 3, 'c', 'b', 'a');
+    pid = create(add_process, 1024, 10, "test", 3, 'c', 'b', 'a');
     resume(pid);
 
-     pid = create(print_process4, 512, 10, "test", 0);
+     pid = create(print_process4, 1024, 12, "test", 0);
        resume(pid);
     serial_puts("process 1 is returning\n");
-    pid = create(test_recvmsg, 512, 10, "test", 0);
+    pid = create(test_recvmsg, 1024, 10, "test", 0);
     resume(pid);
-    pid = create(test_sendmsg, 512, 10, "test", 0);
+    pid = create(test_sendmsg, 1024, 10, "test", 0);
     resume(pid);
-    pid = create(test_time_quanta1, 512, 10, "test", 0);
-    __asm__ volatile("sti");
+    pid = create(test_time_quanta1, 2048, 10, "test", 0);
+    //__asm__ volatile("sti");
     resume(pid);
-    pid = create(test_time_quanta2, 512, 10, "test", 0);
+    pid = create(test_time_quanta2, 2048, 10, "test", 0);
     resume(pid);
 }
 
@@ -113,16 +113,16 @@ void kmain(void) {
     char input[MAX_INPUT];
     int pos = 0;
     struct blockstr *pmblock;  
-    serial_puts("creating process\n");
+    //serial_puts("creating process\n");
 
     char *memory_start;
     memory_start = (char *)highbyte((uint32_t)memsec);
 
     freemem.next = (struct blockstr *)memory_start;
-    freemem.size = 4096;
+    freemem.size = 65536;
 
     pmblock = freemem.next;
-    pmblock->size = 4096;
+    pmblock->size = 65536;
     pmblock->next = NULL;
     // memsec = highbyte(memsec);
     // freemem.next = pmblock = (struct blockstr *)memsec;
@@ -150,8 +150,9 @@ void kmain(void) {
     pid32_t third_pid;
 
     proc_init();
-
-    pid = create(test_process, 2048, 10, "test", 0);
+     //serial_puts("creating process2\n");
+    pid = create(test_process, 2048, 15, "test", 0);
+    // serial_puts("creating process3\n");
 
     if (pid == SYSERR) {
         serial_puts("create failed\n");

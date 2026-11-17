@@ -20,7 +20,7 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     volatile uint32_t *frame;
     uint32_t *a; 
 
-    //uint32_t mask = irq_save();
+    uint32_t mask = irq_save();
 
     if (ssize < MINSTK)
         ssize = MINSTK;
@@ -86,9 +86,9 @@ pid32_t create(void (*funcaddr), uint32_t ssize, pri16_t priority, char *name, u
     frame[10] = (uint32_t)userret;
 
     prptr->prstkptr = (char *)frame;
-    serial_puts("process created\n");
-    //irq_restore(mask);
-    serial_puts("process created2\n");
+    //serial_puts("process created\n");
+    irq_restore(mask);
+    //serial_puts("process created2\n");
     return pid;
 }
 
@@ -131,7 +131,7 @@ int32_t kill(pid32_t pid)
     }
 
     stkkill(prptr->prstkbase, prptr->prstklen);
-   // serial_puts("stack killed\n");
+    //serial_puts("stack killed\n");
 
     switch (prptr->prstate) {
         case PR_CURR:

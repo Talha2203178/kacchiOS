@@ -13,20 +13,20 @@ syscall resched(void)
     struct procent *newproc;
     pid32_t nextpid;
 
-    //uint32_t mask = irq_save();
+    uint32_t mask = irq_save();
 
     oldproc = &proctab[currpid];
     if (oldproc->prstate == PR_CURR) {
-       /* if (nonempty(readylist) &&
+       if (nonempty(readylist) &&
             oldproc->prprio > firstkey(readylist)) {
             //serial_puts("\nresched: putting current process back to ready list\n");
             //irq_restore(mask);
             return OK;
-        } */
+        } 
         oldproc->prstate = PR_READY;
         if (insert(currpid, readylist, oldproc->prprio) == SYSERR) {
             oldproc->prstate = PR_CURR;
-            //irq_restore(mask);
+            irq_restore(mask);
             serial_puts("Here1\n");
             return SYSERR;
         }
@@ -35,7 +35,7 @@ syscall resched(void)
     nextpid = dequeue(readylist);
     if (nextpid == EMPTY || nextpid == SYSERR) {
         oldproc->prstate = PR_CURR;
-        //irq_restore(mask);
+        irq_restore(mask);
         serial_puts("Here2\n");
         return SYSERR;
     }
@@ -43,9 +43,9 @@ syscall resched(void)
     currpid = nextpid;
     newproc = &proctab[currpid];
     newproc->prstate = PR_CURR;
-    serial_puts("Before ctxsw\n");
+    //serial_puts("Before ctxsw\n");
     ctxsw(&oldproc->prstkptr, newproc->prstkptr);
-    //irq_restore(mask);
+    irq_restore(mask);
     return OK;
 }
 

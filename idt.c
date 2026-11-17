@@ -43,7 +43,7 @@ void init_idt(){
 }
 
 void timer_interrupt_2(void){
-    serial_puts("Test Interrupt IN the end it doesn't even matter\n");
+    //serial_puts("Test Interrupt IN the end it doesn't even matter\n");
     outb(0x20, 0x20);
     resched();
 }
