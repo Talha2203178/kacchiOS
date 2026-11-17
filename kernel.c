@@ -32,10 +32,25 @@ void test_recvmsg(void){
     serial_puts((char *)stk.stkbase);
     stkkill((void *)stk.stkbase, stk.nobytes);
 }
-void test_sendmsg(void){
+void test_sendmsg(pid32_t id){
     char *msg = "This is a message\n";
-    sendmsg(msg, strlen(msg));
+    sendmsg(msg, strlen(msg), id);
 }
+
+void test_recvmsg2(void){
+    struct msgstk stk;
+    serial_puts("\nIn message receiving...................................................\n");
+    stk = rcvmsg();
+    serial_puts("Received message2:\n");
+    serial_puts((char *)stk.stkbase);
+    stkkill((void *)stk.stkbase, stk.nobytes);
+}
+void test_sendmsg2(pid32_t id){
+    char *msg = "This is a message2\n";
+    serial_puts("\nIn message sending...................................................\n");
+    sendmsg(msg, strlen(msg), id);
+}
+
 static void add_process(char a, char b, char c){
     b = b+1;
     a = a+1;
@@ -80,11 +95,16 @@ static void test_process(void)
 {
     int32_t i;
     test_sem = semcreate(0);
-    pid32_t pid;
+    pid32_t pid, pid2;
     for (i = 0; i < 2; i++) {
         pid = create(print_process, 1024, 10, "test", 0);
         resume(pid);
     }
+
+    pid2 = create(test_recvmsg2, 1024, 10, "test", 0);
+    resume(pid2);
+    pid = create(test_sendmsg2, 1024, 2, "test", 1, 43);
+    resume(pid);
     
     pid = create(print_process2, 1024, 10, "test", 0);
     resume(pid);
@@ -96,15 +116,18 @@ static void test_process(void)
      pid = create(print_process4, 1024, 12, "test", 0);
        resume(pid);
     serial_puts("process 1 is returning\n");
-    pid = create(test_recvmsg, 1024, 10, "test", 0);
+    pid2 = create(test_recvmsg, 1024, 10, "test", 0);
+    resume(pid2);
+    pid = create(test_sendmsg, 1024, 9, "test", 1, pid2);
     resume(pid);
-    pid = create(test_sendmsg, 1024, 8, "test", 0);
-    resume(pid);
+    
     pid = create(test_time_quanta1, 2048, 10, "test", 0);
     //__asm__ volatile("sti");
     resume(pid);
     pid = create(test_time_quanta2, 2048, 10, "test", 0);
     resume(pid);
+
+
 }
 
 void kmain(void) {

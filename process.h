@@ -7,7 +7,7 @@
 #endif
 
 #ifndef NPROC
-#define NPROC		12
+#define NPROC		20
 #endif
 /* Process state constants */
 

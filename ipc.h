@@ -18,4 +18,4 @@ struct msgstk {
 extern qid16_t currmsg;
 extern struct msgstk msgtable[NMSG];
 struct msgstk rcvmsg(void);
-void *sendmsg(char *msg, uint32_t msglen);
+void *sendmsg(char *msg, uint32_t msglen, pid32_t id);
